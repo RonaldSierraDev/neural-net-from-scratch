@@ -6,5 +6,12 @@
 
 
 
-Today starts the first day of my learning journey into making my first ever neural network from scratch. No Pytorch, TensorFlow, or similar frameworks will be used. I plan to make this completely from just python and numpy.  
+Today starts the first day of my learning journey into making my first ever neural network from scratch. No Pytorch, TensorFlow, or similar frameworks will be used. I plan to make this completely from just python and numpy.
+
+
+
+7/4/2026
+
+I downloaded an MNIST set from Kaggle, here's the [link](https://www.kaggle.com/datasets/hojjatk/mnist-dataset?resource=download)
+
 
