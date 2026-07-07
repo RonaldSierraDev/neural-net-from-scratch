@@ -9,7 +9,7 @@ def read_labels(filepath):
 
 
 
-
+#deconstruct images into sets of numbers by each pixel
 def read_images(filepath):
     with open(filepath, 'rb') as f:
         magic, count, rows, columns = struct.unpack('>IIII', f.read(16))
