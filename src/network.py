@@ -98,6 +98,12 @@ def load_dataset(images_path, labels_path):
     y = np.frombuffer(labels, dtype=np.uint8).astype(np.int64)
     return X, y
 
+def save_model(path, W1, b1, W2, b2):
+    np.savez(path, W1=W1, b1=b1, W2=W2, b2=b2)
+
+def load_model(path):
+    data = np.load(path)
+    return data['W1'], data['b1'], data['W2'], data['b2']
 
 if __name__ == '__main__':
     X_train, y_train = load_dataset('../data/train-images.idx3-ubyte', '../data/train-labels.idx1-ubyte')
@@ -108,3 +114,5 @@ if __name__ == '__main__':
 
     _, _, final_probs = forward(X_test, W1, b1, W2, b2)
     print("final test accuracy:", accuracy(final_probs, y_test))
+
+    save_model("../training_results/model.npz", W1, b1, W2, b2)
