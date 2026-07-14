@@ -1,6 +1,8 @@
 import './style.css'
 import { canvasToInputVector } from './preprocess'
 
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+
 
 document.querySelector<HTMLElement>('#app')!.innerHTML = `
     <h1>Draw a digit</h1>
@@ -50,4 +52,20 @@ canvas.addEventListener('mouseup', () => {
     previewCtx.putImageData(imgData, 0, 0)
     previewCtx.imageSmoothingEnabled = false
     previewCtx.drawImage(previewCanvas, 0, 0, 28, 28, 0, 0, 84, 84)
+
+    const resultEl = document.querySelector<HTMLParagraphElement>('#result')!
+    resultEl.textContent = 'Prediction: ...'
+
+    fetch(`${API_URL}/predict`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pixels: Array.from(pixels) }),
+    })
+        .then((res) => res.json())
+        .then((data) => {
+            resultEl.textContent = `Prediction: ${data.prediction} (${(data.probs[data.prediction] * 100).toFixed(1)}%)`
+        })
+        .catch(() => {
+            resultEl.textContent = 'Prediction: failed to reach backend'
+        })
 })

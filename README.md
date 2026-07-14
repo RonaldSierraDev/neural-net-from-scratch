@@ -13,6 +13,19 @@ A 2-layer MLP (784 -> 128 -> 10) trained on Mnist, implemented with only numpy:
     python network.py # trains and saves a checkpoint to ../training_results/model.npz
     python predict.py #loads the checkpoint and classifies a sample digit
 
+## Running the demo (backend + frontend)
+    cd backend && .venv/bin/uvicorn main:app --reload --port 8000
+    cd frontend && npm run dev
+
+Draw a digit at http://localhost:5173 and it POSTs to the backend for a live prediction.
+
+## Deploying
+Two env vars point the frontend and backend at each other; defaults are set for local dev.
+- `backend`: `ALLOWED_ORIGINS` (comma-separated CORS origins, defaults to `http://localhost:5173`)
+- `frontend`: `VITE_API_URL` in `frontend/.env` (defaults to `http://localhost:8000`)
+
+When deploying, set `ALLOWED_ORIGINS` to your deployed frontend URL, and `VITE_API_URL` to your deployed backend URL before building.
+
 
 ***7/3/2026***
 
