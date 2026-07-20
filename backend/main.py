@@ -14,7 +14,9 @@ from network import forward, load_model
 
 app = FastAPI()
 
-allowed_origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+allowed_origins = os.environ.get(
+    "ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
+).split(",")
 
 app.add_middleware(
     CORSMiddleware,

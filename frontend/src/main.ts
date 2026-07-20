@@ -1,25 +1,52 @@
 import './style.css'
 import { canvasToInputVector } from './preprocess'
+import { initNetworkGraph, animatePrediction, resetActivations } from './networkGraph'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
-
+// Horizontal layout: [ drawing panel ] -> [ network graph (outputs live at
+// its right edge) ]. The graph fills the rest of the viewport.
 document.querySelector<HTMLElement>('#app')!.innerHTML = `
-    <h1>Draw a digit</h1>
-    <canvas id="canvas" width="280" height="280"></canvas>
-    <canvas id="preview" width="84" height="84" style="image-rendering: pixelated; border:1px solid gray;"></canvas>
-    <p id="result">Prediction: </p>
+    <main id="layout">
+        <section id="draw-panel">
+            <canvas id="canvas" width="280" height="280"></canvas>
+            <p id="draw-hint">Draw a digit here</p>
+            <div id="draw-meta">
+                <canvas id="preview" width="84" height="84"></canvas>
+                <div>
+                    <p id="result">Prediction: &mdash;</p>
+                    <button id="clear" type="button">Clear</button>
+                </div>
+            </div>
+        </section>
+        <div id="graph"></div>
+    </main>
 `
+
 const canvas = document.querySelector<HTMLCanvasElement>('#canvas')!
 const ctx = canvas.getContext('2d')!
 const previewCanvas = document.querySelector<HTMLCanvasElement>('#preview')!
 const previewCtx = previewCanvas.getContext('2d')!
+const resultEl = document.querySelector<HTMLParagraphElement>('#result')!
 
-ctx.fillStyle = 'black'
-ctx.fillRect(0, 0, canvas.width, canvas.height)
+initNetworkGraph(document.querySelector<HTMLElement>('#graph')!)
+
+function clearCanvas() {
+    ctx.fillStyle = 'black'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    previewCtx.fillStyle = 'black'
+    previewCtx.fillRect(0, 0, previewCanvas.width, previewCanvas.height)
+    resultEl.textContent = 'Prediction: —'
+    resetActivations()
+}
+
+clearCanvas()
 ctx.strokeStyle = 'white'
 ctx.lineWidth = 15
 ctx.lineCap = 'round'
+ctx.lineJoin = 'round'
+
+document.querySelector<HTMLButtonElement>('#clear')!.addEventListener('click', clearCanvas)
 
 let isDrawing = false
 
@@ -35,12 +62,19 @@ canvas.addEventListener('mousemove', (event) => {
     ctx.stroke()
 })
 
-canvas.addEventListener('mouseup', () => {
+function finishStroke() {
+    if (!isDrawing) return
     isDrawing = false
+    submitDrawing()
+}
 
+canvas.addEventListener('mouseup', finishStroke)
+canvas.addEventListener('mouseleave', finishStroke)
+
+function submitDrawing() {
     const pixels = canvasToInputVector(canvas)
 
-    // draw the 28x28 array back out at 3x scale so you can eyeball it
+    // Render the 28x28 input back out at 3x scale for eyeballing.
     const imgData = previewCtx.createImageData(28, 28)
     for (let i = 0; i < pixels.length; i++) {
         const v = pixels[i] * 255
@@ -53,7 +87,6 @@ canvas.addEventListener('mouseup', () => {
     previewCtx.imageSmoothingEnabled = false
     previewCtx.drawImage(previewCanvas, 0, 0, 28, 28, 0, 0, 84, 84)
 
-    const resultEl = document.querySelector<HTMLParagraphElement>('#result')!
     resultEl.textContent = 'Prediction: ...'
 
     fetch(`${API_URL}/predict`, {
@@ -62,10 +95,11 @@ canvas.addEventListener('mouseup', () => {
         body: JSON.stringify({ pixels: Array.from(pixels) }),
     })
         .then((res) => res.json())
-        .then((data) => {
+        .then(async (data) => {
+            await animatePrediction(data.hidden_activations, data.probs, data.prediction)
             resultEl.textContent = `Prediction: ${data.prediction} (${(data.probs[data.prediction] * 100).toFixed(1)}%)`
         })
         .catch(() => {
-            resultEl.textContent = 'Prediction: failed to reach backend'
+            resultEl.textContent = 'Prediction failed — backend unreachable'
         })
-})
+}
