@@ -3,17 +3,17 @@
    gone — they were fighting the canvas. */
 
 :root {
-  --bg: #08080e;
-  --panel: #0d0d15;
-  --border: #26263a;
-  --text: #9ca3af;
-  --text-bright: #e2e8f0;
-  --accent: #8b5cf6;
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --bg: #020603;
+  --panel: #05130a;
+  --border: #143d26;
+  --text: #4d9468;
+  --text-bright: #baf7c9;
+  --accent: #00ff41;
+  --pixel-font: 'Press Start 2P', ui-monospace, monospace;
 
   color: var(--text);
   background: var(--bg);
-  font: 15px/1.4 var(--sans);
+  font: 10px/1.7 var(--pixel-font);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -42,6 +42,19 @@ body {
   align-items: stretch;
 }
 
+#site-title {
+  position: fixed;
+  top: 20px;
+  left: 24px;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+  z-index: 10;
+  pointer-events: none;
+}
+
 #draw-panel {
   flex: 0 0 auto;
   display: flex;
@@ -65,7 +78,7 @@ body {
 #draw-hint {
   margin: 0;
   text-align: center;
-  font-size: 13px;
+  font-size: 9px;
   color: var(--text);
 }
 
@@ -86,24 +99,24 @@ body {
 #result {
   margin: 0 0 8px;
   color: var(--text-bright);
-  font-size: 14px;
-  min-height: 1.4em;
+  font-size: 10px;
+  min-height: 2.4em;
 }
 
 #clear {
-  font: 13px var(--sans);
+  font: 9px var(--pixel-font);
   color: var(--text-bright);
   background: transparent;
   border: 1px solid var(--border);
   border-radius: 5px;
-  padding: 5px 14px;
+  padding: 8px 14px;
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
 }
 
 #clear:hover {
   border-color: var(--accent);
-  background: rgba(139, 92, 246, 0.1);
+  background: rgba(0, 255, 65, 0.1);
 }
 
 #clear:focus-visible {

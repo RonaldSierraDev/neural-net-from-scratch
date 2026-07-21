@@ -7,6 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 // Horizontal layout: [ drawing panel ] -> [ network graph (outputs live at
 // its right edge) ]. The graph fills the rest of the viewport.
 document.querySelector<HTMLElement>('#app')!.innerHTML = `
+    <h1 id="site-title">MNIST classifier from scratch</h1>
     <main id="layout">
         <section id="draw-panel">
             <canvas id="canvas" width="280" height="280"></canvas>

@@ -52,9 +52,14 @@ const COLUMN_SPACING = 48    // px between columns (smaller = more compact)
 const ROW_SPACING = 28       // px between neurons in a column (smaller = more compact)
 const WOBBLE_AMP = 2.6       // px of idle drift; 0 disables wobble
 
-const HIDDEN_COLOR = '139, 92, 246'
-const OUTPUT_COLOR = '56, 189, 248'
-const WINNER_COLOR = '250, 204, 21'
+const HIDDEN_COLOR = '0, 255, 65'
+const OUTPUT_COLOR = '57, 255, 140'
+const WINNER_COLOR = '255, 255, 255'
+const EDGE_COLOR = '0, 255, 65'
+const EDGE_WIDTH = 1
+const EDGE_BASE_ALPHA = 0.05
+const EDGE_ACTIVE_ALPHA = 0.3
+const NODE_FILL = '2, 6, 3'
 
 // Intro animation (on page load): nodes burst from the input point into
 // their positions, sweeping left to right, while edges fade in.
@@ -213,21 +218,28 @@ function resizeCanvas(container: HTMLElement) {
 // ---------------------------------------------------------------------------
 // Drawing
 // ---------------------------------------------------------------------------
-function drawGlowCircle(x: number, y: number, radius: number, rgb: string, strength: number) {
+// Black-filled node with a green outline; ring brightens/thickens with
+// activation, plus a soft outer halo so active nodes still read as "lit".
+function drawNodeCircle(x: number, y: number, radius: number, rgb: string, strength: number, lineWidth = 1.5) {
     if (strength > 0.02) {
-        const glowRadius = radius + radius * 3 * strength
-        const gradient = ctx.createRadialGradient(x, y, 0, x, y, glowRadius)
-        gradient.addColorStop(0, `rgba(${rgb}, ${0.5 + 0.5 * strength})`)
+        const glowRadius = radius + radius * 2.5 * strength
+        const gradient = ctx.createRadialGradient(x, y, radius * 0.6, x, y, glowRadius)
+        gradient.addColorStop(0, `rgba(${rgb}, ${0.3 + 0.35 * strength})`)
         gradient.addColorStop(1, `rgba(${rgb}, 0)`)
         ctx.fillStyle = gradient
         ctx.beginPath()
         ctx.arc(x, y, glowRadius, 0, Math.PI * 2)
         ctx.fill()
     }
-    ctx.fillStyle = `rgba(${rgb}, ${0.75 + 0.25 * strength})`
+
+    ctx.fillStyle = `rgba(${NODE_FILL}, 0.95)`
     ctx.beginPath()
     ctx.arc(x, y, radius, 0, Math.PI * 2)
     ctx.fill()
+
+    ctx.lineWidth = lineWidth
+    ctx.strokeStyle = `rgba(${rgb}, ${0.6 + 0.4 * strength})`
+    ctx.stroke()
 }
 
 function easeOutCubic(t: number): number {
@@ -267,12 +279,16 @@ function render(now: number) {
 
     ctx.clearRect(0, 0, width, height)
 
+    // All edges share one color, width, and opacity formula so the graph
+    // reads as a single consistent wireframe regardless of which layer.
+    ctx.lineWidth = EDGE_WIDTH
+    ctx.strokeStyle = EDGE_COLOR
+
     // hidden -> output edges
-    ctx.lineWidth = 1
     for (const h of hiddenNodes) {
         for (const o of outputNodes) {
             const glow = Math.max(h.activation, o.activation)
-            ctx.strokeStyle = `rgba(148, 163, 184, ${(0.025 + glow * 0.12) * introFade})`
+            ctx.strokeStyle = `rgba(${EDGE_COLOR}, ${(EDGE_BASE_ALPHA + glow * EDGE_ACTIVE_ALPHA) * introFade})`
             ctx.beginPath()
             ctx.moveTo(h.x, h.y)
             ctx.lineTo(o.x, o.y)
@@ -282,7 +298,7 @@ function render(now: number) {
 
     // input -> hidden edges
     for (const node of inputLinks) {
-        ctx.strokeStyle = `rgba(${HIDDEN_COLOR}, ${(0.12 + node.activation * 0.25) * introFade})`
+        ctx.strokeStyle = `rgba(${EDGE_COLOR}, ${(EDGE_BASE_ALPHA + node.activation * EDGE_ACTIVE_ALPHA) * introFade})`
         ctx.beginPath()
         ctx.moveTo(inputOrigin.x, inputOrigin.y)
         ctx.lineTo(node.x, node.y)
@@ -290,7 +306,7 @@ function render(now: number) {
     }
 
     // input anchor dot
-    drawGlowCircle(inputOrigin.x, inputOrigin.y, 5, HIDDEN_COLOR, 0.3)
+    drawNodeCircle(inputOrigin.x, inputOrigin.y, 5, HIDDEN_COLOR, 0.3)
 
     // pulses (targets are nodes, so pulses track the wobble automatically)
     pulses = pulses.filter((p) => {
@@ -315,7 +331,7 @@ function render(now: number) {
     for (const node of hiddenNodes) {
         node.activation += (node.target - node.activation) * 0.12
         ctx.globalAlpha = introProgress(node, now)
-        drawGlowCircle(node.x, node.y, 3, HIDDEN_COLOR, node.activation)
+        drawNodeCircle(node.x, node.y, 3, HIDDEN_COLOR, node.activation)
     }
     ctx.globalAlpha = 1
 
@@ -323,14 +339,9 @@ function render(now: number) {
     for (const node of outputNodes) {
         node.activation += (node.target - node.activation) * 0.12
         ctx.globalAlpha = introProgress(node, now)
-        const r = 13
-        drawGlowCircle(node.x, node.y, r, OUTPUT_COLOR, node.activation)
-        ctx.fillStyle = 'rgba(8, 8, 14, 0.95)'
-        ctx.beginPath()
-        ctx.arc(node.x, node.y, r - 2.5, 0, Math.PI * 2)
-        ctx.fill()
-        ctx.fillStyle = `rgba(226, 232, 240, ${0.7 + node.activation * 0.3})`
-        ctx.font = '600 12px sans-serif'
+        drawNodeCircle(node.x, node.y, 13, OUTPUT_COLOR, node.activation, 2)
+        ctx.fillStyle = `rgba(186, 247, 201, ${0.7 + node.activation * 0.3})`
+        ctx.font = "9px 'Press Start 2P', ui-monospace, monospace"
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
         ctx.fillText(node.label!, node.x, node.y + 0.5)
