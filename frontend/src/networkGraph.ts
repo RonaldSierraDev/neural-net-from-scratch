@@ -52,11 +52,15 @@ const COLUMN_SPACING = 48    // px between columns (smaller = more compact)
 const ROW_SPACING = 28       // px between neurons in a column (smaller = more compact)
 const WOBBLE_AMP = 2.6       // px of idle drift; 0 disables wobble
 
+// All nodes (hidden, output, input anchor) render at the same radius so the
+// numbered output nodes don't read as visually "special" or larger.
+const NODE_RADIUS = 9
+
 const HIDDEN_COLOR = '0, 255, 65'
 const OUTPUT_COLOR = '57, 255, 140'
 const WINNER_COLOR = '255, 255, 255'
 const EDGE_COLOR = '0, 255, 65'
-const EDGE_WIDTH = 1
+const EDGE_WIDTH = 2
 const EDGE_BASE_ALPHA = 0.05
 const EDGE_ACTIVE_ALPHA = 0.3
 const NODE_FILL = '2, 6, 3'
@@ -306,7 +310,7 @@ function render(now: number) {
     }
 
     // input anchor dot
-    drawNodeCircle(inputOrigin.x, inputOrigin.y, 5, HIDDEN_COLOR, 0.3)
+    drawNodeCircle(inputOrigin.x, inputOrigin.y, NODE_RADIUS, HIDDEN_COLOR, 0.3)
 
     // pulses (targets are nodes, so pulses track the wobble automatically)
     pulses = pulses.filter((p) => {
@@ -331,7 +335,7 @@ function render(now: number) {
     for (const node of hiddenNodes) {
         node.activation += (node.target - node.activation) * 0.12
         ctx.globalAlpha = introProgress(node, now)
-        drawNodeCircle(node.x, node.y, 3, HIDDEN_COLOR, node.activation)
+        drawNodeCircle(node.x, node.y, NODE_RADIUS, HIDDEN_COLOR, node.activation)
     }
     ctx.globalAlpha = 1
 
@@ -339,7 +343,7 @@ function render(now: number) {
     for (const node of outputNodes) {
         node.activation += (node.target - node.activation) * 0.12
         ctx.globalAlpha = introProgress(node, now)
-        drawNodeCircle(node.x, node.y, 13, OUTPUT_COLOR, node.activation, 2)
+        drawNodeCircle(node.x, node.y, NODE_RADIUS, OUTPUT_COLOR, node.activation, 2)
         ctx.fillStyle = `rgba(186, 247, 201, ${0.7 + node.activation * 0.3})`
         ctx.font = "9px 'Press Start 2P', ui-monospace, monospace"
         ctx.textAlign = 'center'
